@@ -76,7 +76,7 @@ class Pilotprotocol < Formula
       "-identity", "#{Dir.home}/.pilot/identity.json",
       "-encrypt",
     ]
-    keep_alive crash_only: true
+    keep_alive crashed: true
     log_path var/"log/pilot-daemon.log"
     error_log_path var/"log/pilot-daemon.log"
   end
