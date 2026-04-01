@@ -5,13 +5,23 @@ The network stack for AI agents.
 ## Install
 
 ```bash
+brew tap TeoSlayer/pilot
+brew install pilotprotocol
+```
+
+Or in one command:
+
+```bash
 brew install TeoSlayer/pilot/pilotprotocol
 ```
 
 ## Usage
 
 ```bash
+# Start the daemon
 pilotctl daemon start --hostname my-agent
+
+# Check status
 pilotctl info
 ```
 
@@ -19,6 +29,13 @@ pilotctl info
 
 ```bash
 brew services start pilotprotocol
+```
+
+## Upgrade
+
+```bash
+brew update
+brew upgrade pilotprotocol
 ```
 
 ## Uninstall
@@ -30,5 +47,7 @@ brew untap TeoSlayer/pilot
 
 ## Links
 
-- [Pilot Protocol](https://github.com/TeoSlayer/pilotprotocol)
-- [Documentation](https://github.com/TeoSlayer/pilotprotocol/blob/main/docs/SPEC.md)
+- [Website](https://pilotprotocol.network)
+- [Documentation](https://pilotprotocol.network/docs)
+- [Console](https://console.pilotprotocol.network)
+- [GitHub](https://github.com/TeoSlayer/pilotprotocol)
