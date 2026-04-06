@@ -1,26 +1,26 @@
 class Pilotprotocol < Formula
   desc "The network stack for AI agents - addresses, ports, tunnels, encryption, trust"
   homepage "https://pilotprotocol.network"
-  version "1.4.1"
+  version "1.5.1"
   license "AGPL-3.0"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/TeoSlayer/pilotprotocol/releases/download/v1.4.1/pilot-darwin-arm64.tar.gz"
-      sha256 "9ce6d17f18702d53373bbe90c4cf926a47ca6a9d9e103dc3af3a3854974c672c"
+      url "https://github.com/TeoSlayer/pilotprotocol/releases/download/v1.5.1/pilot-darwin-arm64.tar.gz"
+      sha256 "7f6bf6831cc7db4437a4b19e205ec26535940c0467199f2676eb2bc3475ca8fd"
     else
-      url "https://github.com/TeoSlayer/pilotprotocol/releases/download/v1.4.1/pilot-darwin-amd64.tar.gz"
-      sha256 "de2acb38e1743a8b45e3d9b11d7c54846f2f8af57406772561fbc998496e459d"
+      url "https://github.com/TeoSlayer/pilotprotocol/releases/download/v1.5.1/pilot-darwin-amd64.tar.gz"
+      sha256 "da61a4dd4cf7770bb9fc897757920cb8e0f07d38d74b01a02e51d87b2df149b7"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/TeoSlayer/pilotprotocol/releases/download/v1.4.1/pilot-linux-arm64.tar.gz"
-      sha256 "f7dc5d474a41e57b607ea563720e24f0866e11349d7b9c138f164004ba916c92"
+      url "https://github.com/TeoSlayer/pilotprotocol/releases/download/v1.5.1/pilot-linux-arm64.tar.gz"
+      sha256 "b37e8c01be6ace80aa8d906bc1e73d209cd56cbc82e379d3353f39ada16f22a4"
     else
-      url "https://github.com/TeoSlayer/pilotprotocol/releases/download/v1.4.1/pilot-linux-amd64.tar.gz"
-      sha256 "76a22fecaa88d95b488ef3a6e651aa735562886fe696d8b755f48788d28e5f0f"
+      url "https://github.com/TeoSlayer/pilotprotocol/releases/download/v1.5.1/pilot-linux-amd64.tar.gz"
+      sha256 "44217b4627f18524ee3d6227bdb8e0030d0476650cf98ecd4e50054cdaf98dc4"
     end
   end
 
