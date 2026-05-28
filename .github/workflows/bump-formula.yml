@@ -1,0 +1,166 @@
+name: bump-formula
+
+# Receives a `repository_dispatch` event of type `upstream-release` from
+# the web4 release workflow whenever a new pilotprotocol tag ships, then
+# rewrites `Formula/pilotprotocol.rb` with the new version, URLs, and
+# per-platform SHA-256 from the upstream `checksums.txt`.
+#
+# Default policy: stable releases bump the formula; prereleases do not
+# (Homebrew users overwhelmingly want stable). Override by passing
+# `bump_prerelease: true` on a manual `workflow_dispatch`.
+#
+# Permissions:
+#   contents: write — to push the formula bump commit.
+#
+# Secrets:
+#   GITHUB_TOKEN is auto-issued; nothing else is required.
+#
+# When this repo lives at TeoSlayer/homebrew-pilot the dispatch from web4
+# targets `TeoSlayer/homebrew-pilot/dispatches` (web4's release.yml has
+# the org name parameterized via OWNER). When the repo transfers to
+# `pilot-protocol/homebrew-pilot`, GitHub redirects API calls for ~30
+# days; the web4 dispatch target should be updated to point at the new
+# org explicitly before that grace period ends.
+
+on:
+  repository_dispatch:
+    types: [upstream-release]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Upstream release tag (e.g. v1.10.5)'
+        required: true
+      bump_prerelease:
+        description: 'Bump even when the tag is a prerelease'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve incoming tag
+        id: incoming
+        env:
+          DISPATCH_TAG: ${{ github.event.client_payload.tag }}
+          DISPATCH_PRE: ${{ github.event.client_payload.is_prerelease }}
+          MANUAL_TAG: ${{ inputs.tag }}
+          MANUAL_PRE_OVERRIDE: ${{ inputs.bump_prerelease }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TAG="$MANUAL_TAG"
+            IS_PRE="false"
+            BUMP_PRE="$MANUAL_PRE_OVERRIDE"
+          else
+            TAG="$DISPATCH_TAG"
+            IS_PRE="$DISPATCH_PRE"
+            BUMP_PRE="false"
+          fi
+          if [ -z "$TAG" ]; then
+            echo "::error::missing tag in dispatch payload"
+            exit 1
+          fi
+          # Skip prereleases unless explicitly overridden.
+          if [ "$IS_PRE" = "true" ] && [ "$BUMP_PRE" != "true" ]; then
+            echo "::notice::skipping prerelease ${TAG} (set bump_prerelease=true to override)"
+            echo "skip=1" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "skip=0" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch upstream checksums
+        if: steps.incoming.outputs.skip != '1'
+        id: sha
+        env:
+          TAG: ${{ steps.incoming.outputs.tag }}
+        run: |
+          curl -fsSL -o checksums.txt \
+            "https://github.com/TeoSlayer/pilotprotocol/releases/download/${TAG}/checksums.txt"
+
+          sha_for() { grep " $1\$" checksums.txt | awk '{print $1}'; }
+
+          DA=$(sha_for "pilot-darwin-amd64.tar.gz")
+          DR=$(sha_for "pilot-darwin-arm64.tar.gz")
+          LA=$(sha_for "pilot-linux-amd64.tar.gz")
+          LR=$(sha_for "pilot-linux-arm64.tar.gz")
+          for v in "$DA" "$DR" "$LA" "$LR"; do
+            if [ -z "$v" ]; then
+              echo "::error::checksums.txt missing one or more platforms"
+              cat checksums.txt; exit 1
+            fi
+          done
+          echo "darwin_amd64=$DA" >> "$GITHUB_OUTPUT"
+          echo "darwin_arm64=$DR" >> "$GITHUB_OUTPUT"
+          echo "linux_amd64=$LA"  >> "$GITHUB_OUTPUT"
+          echo "linux_arm64=$LR"  >> "$GITHUB_OUTPUT"
+
+      - name: Rewrite Formula/pilotprotocol.rb
+        if: steps.incoming.outputs.skip != '1'
+        env:
+          TAG:     ${{ steps.incoming.outputs.tag }}
+          VERSION: ${{ steps.incoming.outputs.version }}
+          DA: ${{ steps.sha.outputs.darwin_amd64 }}
+          DR: ${{ steps.sha.outputs.darwin_arm64 }}
+          LA: ${{ steps.sha.outputs.linux_amd64 }}
+          LR: ${{ steps.sha.outputs.linux_arm64 }}
+        run: |
+          F=Formula/pilotprotocol.rb
+          # Update the top-level version line and each url/sha256 pair.
+          # Per-platform URLs always carry the same pilot-${OS}-${ARCH}.tar.gz
+          # filename, so we can target each one unambiguously by its filename.
+          sed -i.bak -E "s|^([[:space:]]*version )\"[^\"]*\"|\1\"${VERSION}\"|" "$F"
+
+          update_pair() {
+            file="$1"; sha="$2"
+            sed -i.bak -E \
+              "s|(url \"https://github.com/[^\"]+/releases/download/)v[^/]+(/${file}\")|\1${TAG}\2|" \
+              "$F"
+            # The sha256 immediately following each url line is the one we
+            # need to rewrite; use awk to walk pairs deterministically.
+            python3 - "$F" "${file}" "${sha}" <<'PY'
+          import re, sys
+          path, fname, new_sha = sys.argv[1], sys.argv[2], sys.argv[3]
+          src = open(path).read()
+          pat = re.compile(
+              r'(url\s+"https://github\.com/[^"]+/releases/download/[^/]+/' + re.escape(fname) + r'"\s*\n\s*sha256\s+")[0-9a-f]{64}',
+              re.MULTILINE,
+          )
+          new_src, n = pat.subn(r'\g<1>' + new_sha, src)
+          if n != 1:
+              print(f"error: expected to rewrite 1 sha256 for {fname}, got {n}", file=sys.stderr)
+              sys.exit(1)
+          open(path, "w").write(new_src)
+          PY
+          }
+
+          update_pair "pilot-darwin-amd64.tar.gz" "$DA"
+          update_pair "pilot-darwin-arm64.tar.gz" "$DR"
+          update_pair "pilot-linux-amd64.tar.gz"  "$LA"
+          update_pair "pilot-linux-arm64.tar.gz"  "$LR"
+          rm -f "$F.bak"
+
+          echo "=== updated formula ==="
+          head -30 "$F"
+
+      - name: Commit and push
+        if: steps.incoming.outputs.skip != '1'
+        env:
+          TAG: ${{ steps.incoming.outputs.tag }}
+        run: |
+          if git diff --quiet Formula/pilotprotocol.rb; then
+            echo "formula unchanged — nothing to commit."
+            exit 0
+          fi
+          git config user.name  "pilot-release-bot"
+          git config user.email "release-bot@pilotprotocol.network"
+          git add Formula/pilotprotocol.rb
+          git commit -m "bump pilotprotocol to ${TAG}" \
+                     -m "Triggered by upstream release workflow."
+          git push origin HEAD:main
