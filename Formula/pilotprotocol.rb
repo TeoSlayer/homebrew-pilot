@@ -1,33 +1,32 @@
 class Pilotprotocol < Formula
   desc "The network stack for AI agents - addresses, ports, tunnels, encryption, trust"
   homepage "https://pilotprotocol.network"
-  version "1.10.5"
+  version "1.12.3"
   license "AGPL-3.0"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/TeoSlayer/pilotprotocol/releases/download/v1.10.5/pilot-darwin-arm64.tar.gz"
-      sha256 "125fe7c8b83ce89f53487ec0ac1fe22decd4defd4af2b42559809042e2083597"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.12.3/pilot-darwin-arm64.tar.gz"
+      sha256 "410790219e9889e4d82a338875af72b06711395a3c5f9debda71899231865c87"
     else
-      url "https://github.com/TeoSlayer/pilotprotocol/releases/download/v1.10.5/pilot-darwin-amd64.tar.gz"
-      sha256 "eab41da1108068e965e4c500bfae6f5aa1b6a21d02b7feb3942fd2b6434fc3be"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.12.3/pilot-darwin-amd64.tar.gz"
+      sha256 "bd7c1667dbe8c0d4a9294318a881efbbd0e740d6afbda85b4083f669fc007385"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/TeoSlayer/pilotprotocol/releases/download/v1.10.5/pilot-linux-arm64.tar.gz"
-      sha256 "37428a4b08e6880cffca5049df872746358c41f9d63c25d5896446c48aa7e165"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.12.3/pilot-linux-arm64.tar.gz"
+      sha256 "bba3145b46bc77b26d206e11d0c7c8a045bd63f5dd617505ebfd820a176b4613"
     else
-      url "https://github.com/TeoSlayer/pilotprotocol/releases/download/v1.10.5/pilot-linux-amd64.tar.gz"
-      sha256 "b062e355f24d85b884345de396398cd95d5c70fd44d23a9633c1bbcd3003022b"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.12.3/pilot-linux-amd64.tar.gz"
+      sha256 "031071157012b7b2a9b59fee539a345f29f9b3f14f8963f3e1933284cd11a5a4"
     end
   end
 
   def install
     bin.install "daemon" => "pilot-daemon"
     bin.install "pilotctl" => "pilotctl"
-    bin.install "gateway" => "pilot-gateway"
     bin.install "updater" => "pilot-updater"
   end
 
