@@ -1,0 +1,230 @@
+name: Update formula
+
+# Self-updating Homebrew formula.
+#
+# Polls the PUBLIC latest release of pilot-protocol/pilotprotocol every 30
+# minutes (and on manual dispatch). When a newer version than the one pinned
+# in Formula/pilotprotocol.rb is found, it downloads that release's public
+# checksums.txt, regenerates the formula with the new version + per-platform
+# sha256, and commits the change to THIS repo using the built-in GITHUB_TOKEN.
+#
+# Token: NONE new. The release is public (no auth to read), and the commit is
+# to this same repo, which the workflow's built-in GITHUB_TOKEN can write.
+# This replaces the old web4 -> tap push that needed a cross-repo PAT
+# (HOMEBREW_TAP_TOKEN).
+#
+# Idempotent: if the formula already pins the latest version, it is a no-op.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-formula
+  cancel-in-progress: false
+
+env:
+  UPSTREAM_REPO: pilot-protocol/pilotprotocol
+  FORMULA: Formula/pilotprotocol.rb
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tap
+        uses: actions/checkout@v4
+
+      - name: Resolve latest upstream release
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG=$(gh release view --repo "$UPSTREAM_REPO" --json tagName --jq '.tagName')
+          if [ -z "$TAG" ] || [ "$TAG" = "null" ]; then
+            echo "::error::could not resolve latest release tag for $UPSTREAM_REPO"
+            exit 1
+          fi
+          echo "tag=$TAG"            >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}"    >> "$GITHUB_OUTPUT"
+          echo "Latest upstream release: $TAG"
+
+      - name: Read currently pinned version
+        id: current
+        run: |
+          set -euo pipefail
+          CUR=$(grep -m1 -E '^\s*version\s+"' "$FORMULA" | sed -E 's/.*version[[:space:]]+"([^"]+)".*/\1/')
+          echo "version=$CUR" >> "$GITHUB_OUTPUT"
+          echo "Formula currently pins: ${CUR:-<none>}"
+
+      - name: Decide whether to update
+        id: decide
+        run: |
+          set -euo pipefail
+          LATEST="${{ steps.latest.outputs.version }}"
+          CURRENT="${{ steps.current.outputs.version }}"
+          if [ "$LATEST" = "$CURRENT" ]; then
+            echo "update=false" >> "$GITHUB_OUTPUT"
+            echo "Already at $LATEST — nothing to do."
+          else
+            echo "update=true" >> "$GITHUB_OUTPUT"
+            echo "Upgrade needed: $CURRENT -> $LATEST"
+          fi
+
+      - name: Download release checksums
+        if: steps.decide.outputs.update == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download "${{ steps.latest.outputs.tag }}" \
+            --repo "$UPSTREAM_REPO" \
+            --pattern checksums.txt \
+            --output checksums.txt \
+            --clobber
+          cat checksums.txt
+
+      - name: Regenerate formula
+        if: steps.decide.outputs.update == 'true'
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.latest.outputs.tag }}"
+          VERSION="${{ steps.latest.outputs.version }}"
+          BASE="https://github.com/${UPSTREAM_REPO}/releases/download/${TAG}"
+
+          sum() { grep "pilot-$1.tar.gz" checksums.txt | awk '{print $1}'; }
+          DA=$(sum darwin-arm64); DX=$(sum darwin-amd64)
+          LA=$(sum linux-arm64);  LX=$(sum linux-amd64)
+          for pair in "darwin-arm64:$DA" "darwin-amd64:$DX" "linux-arm64:$LA" "linux-amd64:$LX"; do
+            val="${pair#*:}"
+            [ -n "$val" ] || { echo "::error::missing checksum for ${pair%%:*}"; exit 1; }
+          done
+
+          cat > "$FORMULA" <<RUBY
+          class Pilotprotocol < Formula
+            desc "The network stack for AI agents - addresses, ports, tunnels, encryption, trust"
+            homepage "https://pilotprotocol.network"
+            version "${VERSION}"
+            license "AGPL-3.0"
+
+            on_macos do
+              if Hardware::CPU.arm?
+                url "${BASE}/pilot-darwin-arm64.tar.gz"
+                sha256 "${DA}"
+              else
+                url "${BASE}/pilot-darwin-amd64.tar.gz"
+                sha256 "${DX}"
+              end
+            end
+
+            on_linux do
+              if Hardware::CPU.arm?
+                url "${BASE}/pilot-linux-arm64.tar.gz"
+                sha256 "${LA}"
+              else
+                url "${BASE}/pilot-linux-amd64.tar.gz"
+                sha256 "${LX}"
+              end
+            end
+
+            def install
+              bin.install "daemon" => "pilot-daemon"
+              bin.install "pilotctl" => "pilotctl"
+              bin.install "updater" => "pilot-updater"
+            end
+
+            def post_install
+              (var/"pilot").mkpath
+
+              config_dir = Pathname.new(Dir.home)/".pilot"
+              config_dir.mkpath
+              (config_dir/"bin").mkpath
+
+              # Write version file for the auto-updater
+              version_file = config_dir/"bin/.pilot-version"
+              version_file.write "v#{version}\n"
+
+              config_file = config_dir/"config.json"
+              unless config_file.exist?
+                config_file.write <<~JSON
+                  {
+                    "registry": "34.71.57.205:9000",
+                    "beacon": "34.71.57.205:9001",
+                    "socket": "/tmp/pilot.sock",
+                    "encrypt": true,
+                    "identity": "#{config_dir}/identity.json"
+                  }
+                JSON
+              end
+            end
+
+            def caveats
+              <<~EOS
+                Config written to ~/.pilot/config.json (if not already present).
+
+                Get started:
+                  pilotctl daemon start --hostname my-agent --email you@example.com
+                  pilotctl info
+
+                Docs: https://pilotprotocol.network/docs
+
+                To start as background services:
+                  brew services start pilotprotocol
+              EOS
+            end
+
+            service do
+              run [
+                opt_bin/"pilot-daemon",
+                "-registry", "34.71.57.205:9000",
+                "-beacon", "34.71.57.205:9001",
+                "-listen", ":4000",
+                "-socket", "/tmp/pilot.sock",
+                "-identity", "#{Dir.home}/.pilot/identity.json",
+                "-encrypt",
+              ]
+              keep_alive crashed: true
+              log_path var/"log/pilot-daemon.log"
+              error_log_path var/"log/pilot-daemon.log"
+            end
+
+            test do
+              assert_match "pilotctl", shell_output("#{bin}/pilotctl --help 2>&1", 0)
+            end
+          end
+          RUBY
+          # Strip the 10-space heredoc indent.
+          sed -i 's/^          //' "$FORMULA"
+          rm -f checksums.txt
+          echo "----- regenerated $FORMULA -----"
+          cat "$FORMULA"
+
+      - name: Commit and push
+        if: steps.decide.outputs.update == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- "$FORMULA"; then
+            echo "No change in $FORMULA after regeneration — skipping commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$FORMULA"
+          git commit -m "Bump pilotprotocol to ${{ steps.latest.outputs.tag }}"
+          git push
+          echo "Pushed formula update -> ${{ steps.latest.outputs.tag }}"
+
+      - name: Summary
+        run: |
+          {
+            echo "## Homebrew formula update"
+            echo "- Upstream latest: \`${{ steps.latest.outputs.tag }}\`"
+            echo "- Was pinned at: \`${{ steps.current.outputs.version }}\`"
+            echo "- Updated: \`${{ steps.decide.outputs.update }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
