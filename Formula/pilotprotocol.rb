@@ -1,26 +1,26 @@
 class Pilotprotocol < Formula
   desc "The network stack for AI agents - addresses, ports, tunnels, encryption, trust"
   homepage "https://pilotprotocol.network"
-  version "1.12.3"
+  version "1.12.4"
   license "AGPL-3.0"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.12.3/pilot-darwin-arm64.tar.gz"
-      sha256 "410790219e9889e4d82a338875af72b06711395a3c5f9debda71899231865c87"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.12.4/pilot-darwin-arm64.tar.gz"
+      sha256 "8f73eb0c2f0d38afa46057380b8f46fdbf44b55a60320a81cf9a0b67399b5d9d"
     else
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.12.3/pilot-darwin-amd64.tar.gz"
-      sha256 "bd7c1667dbe8c0d4a9294318a881efbbd0e740d6afbda85b4083f669fc007385"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.12.4/pilot-darwin-amd64.tar.gz"
+      sha256 "b3cb4863f96b5586a6d94cc3811c8faf1931bfe28f0c878b355a0c2345af7ffe"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.12.3/pilot-linux-arm64.tar.gz"
-      sha256 "bba3145b46bc77b26d206e11d0c7c8a045bd63f5dd617505ebfd820a176b4613"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.12.4/pilot-linux-arm64.tar.gz"
+      sha256 "1b2fc9584c7a884744d173815e14889ff161f50b506bf1e1287db0edf0f4e220"
     else
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.12.3/pilot-linux-amd64.tar.gz"
-      sha256 "031071157012b7b2a9b59fee539a345f29f9b3f14f8963f3e1933284cd11a5a4"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.12.4/pilot-linux-amd64.tar.gz"
+      sha256 "ac0a053ee991e55fa788d21351ed67f74028b9ed7060b6d199a221d32e5d6979"
     end
   end
 
@@ -45,11 +45,11 @@ class Pilotprotocol < Formula
     unless config_file.exist?
       config_file.write <<~JSON
         {
-          "registry": "34.71.57.205:9000",
-          "beacon": "34.71.57.205:9001",
-          "socket": "/tmp/pilot.sock",
-          "encrypt": true,
-          "identity": "#{config_dir}/identity.json"
+"registry": "34.71.57.205:9000",
+"beacon": "34.71.57.205:9001",
+"socket": "/tmp/pilot.sock",
+"encrypt": true,
+"identity": "#{config_dir}/identity.json"
         }
       JSON
     end
