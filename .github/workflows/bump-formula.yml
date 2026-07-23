@@ -82,7 +82,7 @@ jobs:
           TAG: ${{ steps.incoming.outputs.tag }}
         run: |
           curl -fsSL -o checksums.txt \
-            "https://github.com/TeoSlayer/pilotprotocol/releases/download/${TAG}/checksums.txt"
+            "https://github.com/pilot-protocol/pilotprotocol/releases/download/${TAG}/checksums.txt"
 
           sha_for() { grep " $1\$" checksums.txt | awk '{print $1}'; }
 
