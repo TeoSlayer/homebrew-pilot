@@ -6,10 +6,15 @@ The network stack for AI agents.
 
 ```bash
 brew tap TeoSlayer/pilot
+brew trust TeoSlayer/pilot
 brew install pilotprotocol
 ```
 
-Or in one command:
+`brew trust` is required: recent Homebrew refuses to load formulae from a
+non-official tap until the tap is trusted, so without it `brew install`
+fails even though the tap was added successfully.
+
+Or, once the tap is trusted, in one command:
 
 ```bash
 brew install TeoSlayer/pilot/pilotprotocol
