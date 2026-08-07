@@ -1,26 +1,26 @@
 class Pilotprotocol < Formula
   desc "The network stack for AI agents - addresses, ports, tunnels, encryption, trust"
   homepage "https://pilotprotocol.network"
-  version "managed-runtime-v0.1.5"
+  version "1.13.9"
   license "AGPL-3.0"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/managed-runtime-v0.1.5/pilot-darwin-arm64.tar.gz"
-      sha256 "9df13081c5340f24c18c7941ad964c7c8c67b64d0f7a7fe98eee5043ee2fe915"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.13.9/pilot-darwin-arm64.tar.gz"
+      sha256 "5dcd964af56bc362c51f663948f7a728e0259e80efc06eb6b0985f70eb2e17fa"
     else
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/managed-runtime-v0.1.5/pilot-darwin-amd64.tar.gz"
-      sha256 "0d8bbda818bbfa1df9544fe114353eca097d3f7b7e356c4c5ceac1eaaf3f6d63"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.13.9/pilot-darwin-amd64.tar.gz"
+      sha256 "18b26c0e19370871894165711c51c44e372ba87210ef95da7a705154f1e108e4"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/managed-runtime-v0.1.5/pilot-linux-arm64.tar.gz"
-      sha256 "ce873cc9838a7845956028050358f66a33f87af7c8983d2e63065d89104c2181"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.13.9/pilot-linux-arm64.tar.gz"
+      sha256 "a07c7f7592bd9f26441c36539717eb5bd14e755d23bfbe3ec45aaaca8c1f52af"
     else
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/managed-runtime-v0.1.5/pilot-linux-amd64.tar.gz"
-      sha256 "432c04cd27b66e422b5d50778a7f7c220cd20b248348d2fcbad7e0a13e4de498"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.13.9/pilot-linux-amd64.tar.gz"
+      sha256 "2f2366157ad1124a384904050c42084ff06d14df668a8e9f69eaa38b1e00fb45"
     end
   end
 
