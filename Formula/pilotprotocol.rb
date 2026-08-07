@@ -1,26 +1,26 @@
 class Pilotprotocol < Formula
   desc "The network stack for AI agents - addresses, ports, tunnels, encryption, trust"
   homepage "https://pilotprotocol.network"
-  version "managed-runtime-v0.1.3"
+  version "managed-runtime-v0.1.5"
   license "AGPL-3.0"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/managed-runtime-v0.1.3/pilot-darwin-arm64.tar.gz"
-      sha256 "14b0e8cfd51931a1cef5dfcabac5f9abe1bc436d21c42bda659d2f97e4dba2c2"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/managed-runtime-v0.1.5/pilot-darwin-arm64.tar.gz"
+      sha256 "9df13081c5340f24c18c7941ad964c7c8c67b64d0f7a7fe98eee5043ee2fe915"
     else
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/managed-runtime-v0.1.3/pilot-darwin-amd64.tar.gz"
-      sha256 "f34a01c363b254f7c5ca2b42e4fe2eaef893b60361cec3e96ee11c2237c32153"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/managed-runtime-v0.1.5/pilot-darwin-amd64.tar.gz"
+      sha256 "0d8bbda818bbfa1df9544fe114353eca097d3f7b7e356c4c5ceac1eaaf3f6d63"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/managed-runtime-v0.1.3/pilot-linux-arm64.tar.gz"
-      sha256 "8c171351cf28fe1d0f5e024910e92ae5e9730ca801528324c92cfd9c4ddfab6a"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/managed-runtime-v0.1.5/pilot-linux-arm64.tar.gz"
+      sha256 "ce873cc9838a7845956028050358f66a33f87af7c8983d2e63065d89104c2181"
     else
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/managed-runtime-v0.1.3/pilot-linux-amd64.tar.gz"
-      sha256 "1c19f7bc3b51eab1a41e9e90698f4f25f47a28a964ddc6d36d1164d710ff7124"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/managed-runtime-v0.1.5/pilot-linux-amd64.tar.gz"
+      sha256 "432c04cd27b66e422b5d50778a7f7c220cd20b248348d2fcbad7e0a13e4de498"
     end
   end
 
