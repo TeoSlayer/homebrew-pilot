@@ -1,26 +1,26 @@
 class Pilotprotocol < Formula
   desc "The network stack for AI agents - addresses, ports, tunnels, encryption, trust"
   homepage "https://pilotprotocol.network"
-  version "1.18.0"
+  version "1.19.0"
   license "AGPL-3.0"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.18.0/pilot-darwin-arm64.tar.gz"
-      sha256 "3673e7331c72161db65f720ea684c196b5d46e6189ec7ca906191ce2bf3fe641"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.19.0/pilot-darwin-arm64.tar.gz"
+      sha256 "7a215f0f9f7a16ea0b33ecdf73aca44e5303afa2d17ef42cc625061c82d5a9b3"
     else
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.18.0/pilot-darwin-amd64.tar.gz"
-      sha256 "eb3b9ebeb276617dcc592746838ef1a2ed29144f3f1d620c5949a95146229e70"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.19.0/pilot-darwin-amd64.tar.gz"
+      sha256 "617a5c9b20423bf73a4641af302041700169cb9810e0f608a42f741bbf928888"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.18.0/pilot-linux-arm64.tar.gz"
-      sha256 "3172c4ac46813a4d0fdb0a5a0f49ae0539cc340e04cc1244b543c93e6b784fa6"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.19.0/pilot-linux-arm64.tar.gz"
+      sha256 "357fca90b0597d5bd6fefd09f627e91d8978cc5e8ac49185c78288a5146367d2"
     else
-      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.18.0/pilot-linux-amd64.tar.gz"
-      sha256 "322efe0e53b98bf78ab9ea664f574bfd00c61b0607925538d923d27b5242b086"
+      url "https://github.com/pilot-protocol/pilotprotocol/releases/download/v1.19.0/pilot-linux-amd64.tar.gz"
+      sha256 "326164d62f5df81207e6d7b08a085ed7087906bd99afe1b0956d7ca16702d79a"
     end
   end
 
